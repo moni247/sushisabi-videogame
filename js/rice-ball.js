@@ -1,54 +1,87 @@
-class RiceBall {
-    constructor(ctx, posX, posY, gameSize) {
+class Player {
+    constructor(ctx, posX, posY, gameSize, platforms, ingredients) {
         this.ctx = ctx
         this.riceBallPos = { x: posX, y: posY }
-        // this.riceBallSize = { w: 50, h: 50 }
-        this.riceBallRadius = 20
-        this.riceBallVel = { x: 10, y: 1 }
-        this.riceBallPhysics = { gravity: 5 }
+        this.riceBallSize = { w: 60, h: 60 }
+
+        this.riceBallVel = { x: 1, y: 0.5 }
+        this.riceBallPhysics = { gravity: 0.1 }
         this.gameSize = gameSize
-        // this.platform = platform
+        this.lives = 3
         // this.imageInstance = undefined
+        this.bullets = []
+        this.bulletsCounter = 0
+
+        this.image = new Image()
+        this.image.src = "./img/bola-de-arroz.png"
+        this.image.frames = 4
+        this.image.framesIndex = 0
+
+        this.isMoving = true
+
+        this.platforms = platforms
+        this.ingredients = ingredients
 
         this.initRiceBall()
     }
 
     initRiceBall() {
-        this.draw()
+        this.move()
         this.moveLeft()
         this.moveRight()
     }
 
-    draw() {
+    draw(framesCounter) {
+        this.ctx.drawImage(
+            this.image,
+            this.image.framesIndex * (this.image.width / this.image.frames),
+            0,
+            this.image.width / this.image.frames,
+            this.image.height,
+            this.riceBallPos.x,
+            this.riceBallPos.y,
+            this.riceBallSize.w,
+            this.riceBallSize.h
+        )
+        this.animate(framesCounter)
         this.move()
-        this.ctx.beginPath()
-        this.ctx.fillStyle = 'black'
-        this.ctx.arc(this.riceBallPos.x, this.riceBallPos.y, this.riceBallRadius, 0, Math.PI * 2)
-        this.ctx.fill()
-        this.ctx.closePath()
     }
 
-    move() {
-        this.riceBallPos.y += this.riceBallPhysics.gravity
-
-
-        this.checkBaseCollision()
-    }
-
-    checkBaseCollision() {
-        if (this.riceBallPos.y >= this.gameSize.h - this.riceBallRadius) {
-            this.riceBallPos.y -= (this.riceBallRadius / 2)
-            this.riceBallPhysics.gravity = 0
+    animate(framesCounter) {
+        if (framesCounter % 4 == 0) {
+            this.image.framesIndex++
+        }
+        if (this.image.framesIndex >= this.image.frames) {
+            this.image.framesIndex = 0
         }
     }
 
-    // this.platforms.forEach((elem) => {
-    //     if (this.riceBallPos.y + this.riceBallRadius <= elem.platformPos.y) {
-    //         this.riceBallPos.y = elem.platformPos.y
-    //         console.log('hago algo')
-    //     }
-    // });
+    move() {
+        if (this.isMoving) {
+            this.riceBallPos.y += this.riceBallVel.y
+            this.riceBallVel.y += this.riceBallPhysics.gravity
+        }
 
+
+        // if (this.isMoving && this.riceBallPos.y + this.riceBallVel.y <= this.gameSize.h) {
+        //     this.riceBallPos.y += this.riceBallVel.y
+        //     this.riceBallVel.y += this.riceBallPhysics.gravity
+        // } else {
+        //     this.riceBallVel.y = 0
+        // }
+
+        this.checkLateralCollision()
+    }
+
+    checkLateralCollision() {
+        if (this.riceBallPos.x > this.gameSize.w - this.riceBallSize.w) {
+            this.riceBallPos.x -= 15
+        }
+
+        if (this.riceBallPos.x <= 0) {
+            this.riceBallPos.x += 30
+        }
+    }
 
     moveLeft() {
         this.riceBallPos.x -= 15
@@ -58,4 +91,33 @@ class RiceBall {
         this.riceBallPos.x += 15
     }
 
+    shoot() {
+        this.bullets.push(new Tobiko(this.ctx, this.riceBallPos.x, this.riceBallPos.y, this.riceBallSize.w, this.riceBallSize.h))
+    }
+
+
+
 }
+
+
+
+// gravity() {
+//     if (this.augustPos.y >= (this.gameSize.h / 2)) {
+//         this.augustVel.y += this.augustPhysics.gravity
+//         this.augustPos.y += this.augustVel.y
+//     } else {
+//         this.platforms.forEach((eachPlatform) => {
+//             if (this.augustVel.y < 0) {
+//                 eachPlatform.platformPos.y -= this.augustVel.y
+//             }
+//         })
+//         this.enemies.forEach(eachEnemy => {
+//             if (this.augustVel.y < 0) {
+//                 eachEnemy.enemyPos.y -= this.augustVel.y
+//             }
+//         })
+//         this.augustPos.y = this.gameSize.h / 2
+//         this.augustVel.y += this.augustPhysics.gravity
+//         this.augustPos.y += this.augustVel.y
+//     }
+// }
